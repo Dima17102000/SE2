@@ -1,0 +1,95 @@
+@startuml
+title PDP1 - Stage 1: Single-User Task Management
+
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+
+package "pdp1.model" {
+
+    class Task {
+        - id: UUID
+        - name: String
+        - description: String
+        - dueDate: LocalDate
+        - completed: boolean
+        --
+        + Task(name: String, description: String, dueDate: LocalDate)
+        + getId(): UUID
+        + getName(): String
+        + setName(name: String): void
+        + getDescription(): String
+        + setDescription(description: String): void
+        + getDueDate(): LocalDate
+        + setDueDate(dueDate: LocalDate): void
+        + isCompleted(): boolean
+        + setCompleted(completed: boolean): void
+        + toString(): String
+    }
+
+    class User {
+        - id: UUID
+        - username: String
+        - email: String
+        - passwordHash: String
+        --
+        + getUsername(): String
+        + getEmail(): String
+        + verifyPassword(password: String): boolean
+    }
+
+    class Category {
+        - id: UUID
+        - name: String
+        --
+        + getId(): UUID
+        + getName(): String
+        + setName(name: String): void
+    }
+}
+
+package "pdp1.service" {
+
+    class TaskManager {
+        - tasks: Map<UUID, Task>
+        --
+        + addTask(task: Task): void
+        + getTaskById(id: UUID): Task
+        + updateTask(id: UUID, name: String, description: String, dueDate: LocalDate, completed: boolean): void
+        + searchTasks(query: String): List<Task>
+        + getAllTasks(): List<Task>
+        + displayTasks(): String
+    }
+}
+
+package "pdp1.validation" {
+
+    class TaskValidator <<utility>> {
+        - TaskValidator()
+        --
+        + {static} validateName(name: String): String
+        + {static} validateDescription(description: String): String
+        + {static} validateDueDate(dueDate: LocalDate): LocalDate
+    }
+}
+
+User "1" -- "1" TaskManager : uses
+TaskManager "1" o-- "0..*" Task : manages
+Task "0..*" -- "1..*" Category : categorized as
+
+Task ..> TaskValidator : validates with
+TaskManager ..> TaskValidator : validates with
+
+note right of User
+  Stage 1 supports a single user.
+  Password credentials are represented
+  by a securely stored password hash.
+end note
+
+note bottom of Category
+  Each task belongs to at least one category.
+  A category can be assigned to zero or more tasks.
+end note
+
+@enduml

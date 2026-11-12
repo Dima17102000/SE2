@@ -1,0 +1,8 @@
+.DS_Store
+.Rhistory
+.vscode/
+__MACOSX/
+.gradle/
+build/
+bin/
+*.class

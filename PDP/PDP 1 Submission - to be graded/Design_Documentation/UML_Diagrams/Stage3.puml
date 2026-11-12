@@ -1,0 +1,210 @@
+@startuml
+title PDP1 - Stage 3: Collaborative Task Management
+
+hide circle
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+package "pdp1.model" {
+
+    interface ResourceOwner {
+        + getId(): UUID
+    }
+
+    class Task {
+        - id: UUID
+        - name: String
+        - description: String
+        - dueDate: LocalDate
+        - completed: boolean
+        --
+        + Task(name: String, description: String, dueDate: LocalDate)
+        + getId(): UUID
+        + getName(): String
+        + setName(name: String): void
+        + getDescription(): String
+        + setDescription(description: String): void
+        + getDueDate(): LocalDate
+        + setDueDate(dueDate: LocalDate): void
+        + isCompleted(): boolean
+        + setCompleted(completed: boolean): void
+        + toString(): String
+    }
+
+    class User {
+        - id: UUID
+        - username: String
+        - email: String
+        - passwordHash: String
+        --
+        + getId(): UUID
+        + getUsername(): String
+        + getEmail(): String
+        + verifyPassword(password: String): boolean
+    }
+
+    class Team {
+        - id: UUID
+        - name: String
+        - description: String
+        --
+        + Team(name: String, description: String)
+        + getId(): UUID
+        + getName(): String
+        + setName(name: String): void
+        + getDescription(): String
+        + setDescription(description: String): void
+    }
+
+    class Project {
+        - id: UUID
+        - name: String
+        - description: String
+        --
+        + Project(name: String, description: String)
+        + getId(): UUID
+        + getName(): String
+        + setName(name: String): void
+        + getDescription(): String
+        + setDescription(description: String): void
+    }
+
+    class Category {
+        - id: UUID
+        - name: String
+        --
+        + getId(): UUID
+        + getName(): String
+        + setName(name: String): void
+    }
+}
+
+package "pdp1.service" {
+
+    class TaskManager {
+        - tasks: Map<UUID, Task>
+        --
+        + addTask(task: Task, owner: ResourceOwner): void
+        + getTaskById(id: UUID): Task
+        + updateTask(id: UUID, name: String, description: String, dueDate: LocalDate, completed: boolean): void
+        + searchTasks(query: String): List<Task>
+        + getAllTasks(): List<Task>
+        + displayTasks(): String
+    }
+
+    class ProjectManager {
+        - projects: Map<UUID, Project>
+        --
+        + addProject(project: Project, owner: ResourceOwner): void
+        + getProjectById(id: UUID): Project
+        + getAllProjects(): List<Project>
+        + assignTaskToProject(taskId: UUID, projectId: UUID): void
+        + removeTaskFromProject(taskId: UUID): void
+    }
+
+    class UserManager {
+        - users: Map<UUID, User>
+        --
+        + addUser(user: User): void
+        + getUserById(id: UUID): User
+        + getAllUsers(): List<User>
+    }
+
+    class TeamManager {
+        - teams: Map<UUID, Team>
+        --
+        + addTeam(team: Team): void
+        + getTeamById(id: UUID): Team
+        + getAllTeams(): List<Team>
+        + addMemberToTeam(teamId: UUID, userId: UUID): void
+        + removeMemberFromTeam(teamId: UUID, userId: UUID): void
+        + isMember(teamId: UUID, userId: UUID): boolean
+    }
+}
+
+package "pdp1.validation" {
+
+    class TaskValidator <<utility>> {
+        - TaskValidator()
+        --
+        + {static} validateName(name: String): String
+        + {static} validateDescription(description: String): String
+        + {static} validateDueDate(dueDate: LocalDate): LocalDate
+    }
+}
+
+' Resource ownership abstraction
+User ..|> ResourceOwner
+Team ..|> ResourceOwner
+
+' Team membership
+User "1..*" -- "0..*" Team : member of
+
+' Ownership of tasks and projects
+ResourceOwner "1" -- "0..*" Task : owns
+ResourceOwner "1" -- "0..*" Project : owns
+
+' Optional project association
+Project "0..1" -- "0..*" Task : groups
+
+' Category assignment
+Task "0..*" -- "1..*" Category : categorized as
+
+' Specialized managers
+TaskManager "1" o-- "0..*" Task : manages
+ProjectManager "1" o-- "0..*" Project : manages
+UserManager "1" o-- "0..*" User : manages
+TeamManager "1" o-- "0..*" Team : manages
+
+' Service dependencies
+ProjectManager ..> TaskManager : accesses tasks
+TeamManager ..> UserManager : accesses users
+
+' Validation dependencies
+Task ..> TaskValidator : validates with
+TaskManager ..> TaskValidator : validates with
+
+note right of ResourceOwner
+  A resource owner is either
+  an individual User or a Team.
+
+  Each task and project has
+  exactly one ResourceOwner.
+end note
+
+note bottom of Team
+  Each team has at least one member.
+  A user may belong to multiple teams
+  or work independently.
+end note
+
+note bottom of Project
+  A project contains zero or more tasks.
+  Each task belongs to at most one project.
+
+  Tasks without a project are allowed.
+
+  A task assigned to a project must
+  have the same owner as that project.
+end note
+
+note bottom of Category
+  Each task belongs to at least one category.
+  A category may be used by multiple tasks.
+end note
+
+note bottom of TaskManager
+  Stage 3 separates responsibilities:
+
+  TaskManager: tasks
+  ProjectManager: projects
+  UserManager: users
+  TeamManager: teams
+
+  Services must enforce authorization
+  before accessing or changing resources.
+end note
+
+@enduml
