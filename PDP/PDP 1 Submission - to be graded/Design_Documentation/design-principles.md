@@ -32,12 +32,13 @@ Stage 1 introduces the fundamental classes of the application:
 The `Task` class encapsulates its attributes by declaring them as private:
 
 - `id`
+- `validator`
 - `name`
 - `description`
 - `dueDate`
 - `completed`
 
-Access to these attributes is provided through public getter and setter methods.
+Task data is accessed through public getters and updated using appropriate setters. The validator is a private final dependency and is not exposed through a setter.
 
 The task identifier is declared as `final` and cannot be changed after construction.
 
@@ -49,9 +50,10 @@ Each class has a specific responsibility:
 
 | Class | Responsibility |
 |---|---|
+| `Main` | Handles console input, invokes validation, and coordinates task operations. |
 | `Task` | Represents an individual task and its attributes. |
 | `TaskManager` | Manages task creation, retrieval, updates, searching, and display. |
-| `TaskValidator` | Validates task attributes. |
+| `TaskValidator` | Validates task names, descriptions, due dates, and search queries. |
 | `User` | Represents the application user. |
 | `Category` | Represents task categories. |
 
@@ -70,6 +72,16 @@ This separation makes the application easier to understand, test, and maintain.
 
 Changes to the console interface do not necessarily require changes to the task model.
 
+#### 2.3.1. Dependency Injection
+
+The Java implementation uses constructor-based dependency injection for validation. `Main` creates one `TaskValidator` instance and passes it to `TaskManager` and newly created `Task` objects.
+
+Both `Task` and `TaskManager` store the validator in a private final instance field. Validation is performed through instance methods rather than static utility calls.
+
+An alternative validator can be introduced by subclassing `TaskValidator` and passing that implementation through the constructors. This reduces the need to modify task management classes when validation rules change.
+
+The parameterless constructors in `Task` and `TaskManager` remain available for compatibility and create the default validator. Passing a validator explicitly enables the application to use the selected implementation consistently.
+
 ### 2.4. Defensive Programming
 
 The application validates input before accepting or modifying task data.
@@ -79,9 +91,12 @@ Examples include:
 - Rejecting null or blank task names.
 - Rejecting null descriptions.
 - Rejecting null due dates.
+- Rejecting null or blank search queries.
 - Rejecting invalid task identifiers.
 - Preventing duplicate task registration.
 - Handling attempts to retrieve nonexistent tasks.
+
+Task names, descriptions, due dates, and search queries are validated immediately after being read from the console. The model and service layers also validate relevant values, so direct method calls cannot bypass the core checks.
 
 Invalid input results in explicit exceptions.
 
@@ -294,7 +309,7 @@ Tests cover:
 - Data consistency after invalid operations.
 - Boundary cases.
 
-The latest verified test execution completed successfully with 73 passing tests.
+The test suite contains 73 test executions. After the validation refactoring, run `./gradlew clean test` to confirm the current results.
 
 ## 6. Design Trade-offs
 
@@ -338,6 +353,6 @@ The three UML stages demonstrate the incremental evolution of the Task Managemen
 - **Stage 2** introduces project organization while allowing tasks to exist independently.
 - **Stage 3** supports collaboration through specialized managers and the `ResourceOwner` abstraction.
 
-The design emphasizes encapsulation, clear responsibilities, extensibility, high cohesion, low coupling, and defensive programming.
+The design emphasizes encapsulation, clear responsibilities, constructor-based dependency injection, extensibility, high cohesion, low coupling, and defensive programming.
 
 These principles make the proposed architecture easier to understand, maintain, test, and extend.

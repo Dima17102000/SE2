@@ -34,10 +34,22 @@ Tasks are stored in a `LinkedHashMap<UUID, Task>` to provide efficient lookup an
 
 ### Java Classes
 
-- **`Main`** - Provides the interactive console interface.
+- **`Main`** - Provides the interactive console interface and validates user input immediately after reading it.
 - **`Task`** - Represents an individual task and its attributes.
 - **`TaskManager`** - Manages task creation, retrieval, updates, searching, and display.
-- **`TaskValidator`** - Validates task names, descriptions, and due dates.
+- **`TaskValidator`** - Validates task names, descriptions, due dates, and search queries.
+
+### Validation and Dependency Injection
+
+The application uses constructor-based dependency injection for task validation.
+
+A `TaskValidator` instance is created in `Main` and passed to `TaskManager` and newly created `Task` objects.
+
+The validator is stored as a private final instance field rather than accessed through static methods.
+
+Task names, descriptions, due dates, and search queries are validated immediately after being read from the console. Validation is also performed in the model and service layers to prevent invalid data from being accepted through direct method calls.
+
+This approach improves modularity, readability, and maintainability. It also allows alternative validation implementations to be introduced through subclassing and constructor injection without modifying the task management logic.
 
 ### Requirements
 
@@ -104,7 +116,7 @@ The tests cover:
 
 `build/reports/tests/test/index.html`
 
-All 73 tests passed in the latest verified execution.
+The test suite previously passed all 73 test executions. The tests should be rerun after the validation refactoring to verify the updated implementation.
 
 ## 3. Task 2 - UML Design
 
@@ -145,7 +157,6 @@ The `ResourceOwner` interface provides a common abstraction for users and teams 
 
 The design supports both personal and team resources.
 
-
 ### UML Diagrams
 
 All UML diagrams are located in the `Design_Documentation/UML_Diagrams/` directory.
@@ -171,12 +182,11 @@ The application design considers the following principles:
 - **Single Responsibility Principle (SRP)** - Separating responsibilities between classes.
 - **Open/Closed Principle (OCP)** - Supporting extensions through abstractions.
 - **Separation of Concerns** - Separating application logic, validation, and user interaction.
+- **Dependency Injection** - Providing the validator through constructors instead of relying on static validation methods.
 - **High Cohesion and Low Coupling** - Keeping related functionality together while minimizing dependencies.
 - **Defensive Programming** - Validating input and handling errors appropriately.
 
-
 A detailed explanation is provided in [design-principles.md](Design_Documentation/design-principles.md).
-
 
 ## 5. Project Structure
 
