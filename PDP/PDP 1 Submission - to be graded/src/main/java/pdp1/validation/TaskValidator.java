@@ -2,12 +2,9 @@ package pdp1.validation;
 
 import java.time.LocalDate;
 
-public final class TaskValidator {
+public class TaskValidator {
 
-    private TaskValidator() {
-    }
-
-    public static String validateName(String name) {
+    public String validateName(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException(
                     "Task name must not be null or blank.");
@@ -16,7 +13,7 @@ public final class TaskValidator {
         return name.trim();
     }
 
-    public static String validateDescription(String description) {
+    public String validateDescription(String description) {
         if (description == null) {
             throw new IllegalArgumentException(
                     "Task description must not be null.");
@@ -25,12 +22,21 @@ public final class TaskValidator {
         return description.trim();
     }
 
-    public static LocalDate validateDueDate(LocalDate dueDate) {
+    public LocalDate validateDueDate(LocalDate dueDate) {
         if (dueDate == null) {
             throw new IllegalArgumentException(
                     "Task due date must not be null.");
         }
 
         return dueDate;
+    }
+
+    public String validateSearchQuery(String query) {
+        if (query == null || query.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Search query must not be null or blank.");
+        }
+
+        return query.trim();
     }
 }

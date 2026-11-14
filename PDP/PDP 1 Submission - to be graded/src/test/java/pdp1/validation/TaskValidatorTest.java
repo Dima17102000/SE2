@@ -13,19 +13,21 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class TaskValidatorTest {
 
+    private final TaskValidator validator = new TaskValidator();
+
     @Nested
     class NameValidationTests {
 
         @Test
         void validNameIsReturnedUnchanged() {
-            String result = TaskValidator.validateName("Study Java");
+            String result = validator.validateName("Study Java");
 
             assertEquals("Study Java", result);
         }
 
         @Test
         void surroundingWhitespaceIsRemoved() {
-            String result = TaskValidator.validateName(
+            String result = validator.validateName(
                     "  Study Java  ");
 
             assertEquals("Study Java", result);
@@ -37,7 +39,7 @@ class TaskValidatorTest {
         void invalidNamesThrowException(String name) {
             assertThrows(
                     IllegalArgumentException.class,
-                    () -> TaskValidator.validateName(name));
+                    () -> validator.validateName(name));
         }
 
         @Test
@@ -46,14 +48,14 @@ class TaskValidatorTest {
 
             assertEquals(
                     name,
-                    TaskValidator.validateName(name));
+                    validator.validateName(name));
         }
 
         @Test
         void longNonBlankNameIsAccepted() {
             String name = "A".repeat(1000);
 
-            String result = TaskValidator.validateName(name);
+            String result = validator.validateName(name);
 
             assertEquals(1000, result.length());
             assertEquals(name, result);
@@ -69,7 +71,7 @@ class TaskValidatorTest {
 
             assertEquals(
                     description,
-                    TaskValidator.validateDescription(description));
+                    validator.validateDescription(description));
         }
 
         @NullSource
@@ -77,26 +79,26 @@ class TaskValidatorTest {
         void nullDescriptionThrowsException(String description) {
             assertThrows(
                     IllegalArgumentException.class,
-                    () -> TaskValidator.validateDescription(description));
+                    () -> validator.validateDescription(description));
         }
 
         @Test
         void emptyDescriptionIsAccepted() {
             assertEquals(
                     "",
-                    TaskValidator.validateDescription(""));
+                    validator.validateDescription(""));
         }
 
         @Test
         void whitespaceOnlyDescriptionBecomesEmpty() {
             assertEquals(
                     "",
-                    TaskValidator.validateDescription("   "));
+                    validator.validateDescription("   "));
         }
 
         @Test
         void surroundingWhitespaceIsRemoved() {
-            String result = TaskValidator.validateDescription(
+            String result = validator.validateDescription(
                     "  Prepare for exam  ");
 
             assertEquals("Prepare for exam", result);
@@ -108,7 +110,7 @@ class TaskValidatorTest {
 
             assertEquals(
                     description,
-                    TaskValidator.validateDescription(description));
+                    validator.validateDescription(description));
         }
     }
 
@@ -121,14 +123,14 @@ class TaskValidatorTest {
 
             assertEquals(
                     date,
-                    TaskValidator.validateDueDate(date));
+                    validator.validateDueDate(date));
         }
 
         @Test
         void nullDueDateThrowsException() {
             assertThrows(
                     IllegalArgumentException.class,
-                    () -> TaskValidator.validateDueDate(null));
+                    () -> validator.validateDueDate(null));
         }
 
         @Test
@@ -137,7 +139,7 @@ class TaskValidatorTest {
 
             assertEquals(
                     date,
-                    TaskValidator.validateDueDate(date));
+                    validator.validateDueDate(date));
         }
 
         @Test
@@ -146,7 +148,7 @@ class TaskValidatorTest {
 
             assertEquals(
                     date,
-                    TaskValidator.validateDueDate(date));
+                    validator.validateDueDate(date));
         }
 
         @Test
@@ -155,7 +157,7 @@ class TaskValidatorTest {
 
             assertEquals(
                     date,
-                    TaskValidator.validateDueDate(date));
+                    validator.validateDueDate(date));
         }
     }
 }

@@ -1,3 +1,4 @@
+
 package pdp1.app;
 
 import java.io.BufferedReader;
@@ -10,23 +11,32 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import pdp1.model.Task;
 import pdp1.service.TaskManager;
+import pdp1.validation.TaskValidator;
 
 public final class Main {
 
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
-    private Main() {
+    private final TaskValidator validator;
+    private final TaskManager manager;
+
+    private Main(TaskValidator validator) {
+        this.validator = Objects.requireNonNull(validator);
+        this.manager = new TaskManager(validator);
     }
 
     public static void main(String[] args) {
-        TaskManager manager = new TaskManager();
+        new Main(new TaskValidator()).run();
+    }
 
+    private void run() {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
 
@@ -38,9 +48,9 @@ public final class Main {
                             reader, "Choose an option: ").trim();
 
                     switch (option) {
-                        case "1" -> addTask(reader, manager);
-                        case "2" -> updateTask(reader, manager);
-                        case "3" -> searchTasks(reader, manager);
+                        case "1" -> addTask(reader);
+                        case "2" -> updateTask(reader);
+                        case "3" -> searchTasks(reader);
                         case "4" -> System.out.println(
                                 manager.displayTasks());
                         case "5" -> {
@@ -88,26 +98,26 @@ public final class Main {
         System.out.println("5. Exit");
     }
 
-    private static void addTask(
-            BufferedReader reader,
-            TaskManager manager) throws IOException {
+    private void addTask(BufferedReader reader) throws IOException {
 
-        String name = readLine(reader, "Task name: ");
-        String description = readLine(reader, "Description: ");
+        String name = validator.validateName(
+                readLine(reader, "Task name: "));
 
-        LocalDate dueDate = LocalDate.parse(
-                readLine(reader, "Due date (YYYY-MM-DD): ").trim());
+        String description = validator.validateDescription(
+                readLine(reader, "Description: "));
 
-        Task task = new Task(name, description, dueDate);
+        LocalDate dueDate = validator.validateDueDate(
+                LocalDate.parse(
+                        readLine(reader, "Due date (YYYY-MM-DD): ").trim()));
+
+        Task task = new Task(name, description, dueDate, validator);
 
         manager.addTask(task);
 
         System.out.println("Task added. ID: " + task.getId());
     }
 
-    private static void updateTask(
-            BufferedReader reader,
-            TaskManager manager) throws IOException {
+    private void updateTask(BufferedReader reader) throws IOException {
 
         UUID id = UUID.fromString(
                 readLine(reader, "Task ID (UUID): ").trim());
@@ -116,11 +126,15 @@ public final class Main {
 
         System.out.println("Current task: " + current);
 
-        String name = readLine(reader, "New name: ");
-        String description = readLine(reader, "New description: ");
+        String name = validator.validateName(
+                readLine(reader, "New name: "));
 
-        LocalDate dueDate = LocalDate.parse(
-                readLine(reader, "New due date (YYYY-MM-DD): ").trim());
+        String description = validator.validateDescription(
+                readLine(reader, "New description: "));
+
+        LocalDate dueDate = validator.validateDueDate(
+                LocalDate.parse(
+                        readLine(reader, "New due date (YYYY-MM-DD): ").trim()));
 
         boolean completed = parseCompleted(
                 readLine(reader, "Completed (yes/no): "));
@@ -131,11 +145,10 @@ public final class Main {
         System.out.println("Task updated.");
     }
 
-    private static void searchTasks(
-            BufferedReader reader,
-            TaskManager manager) throws IOException {
+    private void searchTasks(BufferedReader reader) throws IOException {
 
-        String query = readLine(reader, "Search keyword: ");
+        String query = validator.validateSearchQuery(
+                readLine(reader, "Search keyword: "));
 
         List<Task> results = manager.searchTasks(query);
 

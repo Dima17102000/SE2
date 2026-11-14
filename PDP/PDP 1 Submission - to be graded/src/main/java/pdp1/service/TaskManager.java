@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -15,10 +16,19 @@ import pdp1.model.Task;
 import pdp1.validation.TaskValidator;
 
 public class TaskManager {
-
     private static final Logger LOGGER = Logger.getLogger(TaskManager.class.getName());
 
     private final Map<UUID, Task> tasks = new LinkedHashMap<>();
+
+    private final TaskValidator validator;
+
+    public TaskManager() {
+        this(new TaskValidator());
+    }
+
+    public TaskManager(TaskValidator validator) {
+        this.validator = Objects.requireNonNull(validator);
+    }
 
     public void addTask(Task task) {
         if (task == null) {
@@ -56,9 +66,9 @@ public class TaskManager {
 
         Task task = getTaskById(id);
 
-        String validName = TaskValidator.validateName(name);
-        String validDescription = TaskValidator.validateDescription(description);
-        LocalDate validDueDate = TaskValidator.validateDueDate(dueDate);
+        String validName = validator.validateName(name);
+        String validDescription = validator.validateDescription(description);
+        LocalDate validDueDate = validator.validateDueDate(dueDate);
 
         task.setName(validName);
         task.setDescription(validDescription);
@@ -69,12 +79,9 @@ public class TaskManager {
     }
 
     public List<Task> searchTasks(String query) {
-        if (query == null || query.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Search query must not be null or blank.");
-        }
+        String keyword = validator.validateSearchQuery(query)
+                .toLowerCase(Locale.ROOT);
 
-        String keyword = query.trim().toLowerCase(Locale.ROOT);
         List<Task> results = new ArrayList<>();
 
         for (Task task : tasks.values()) {

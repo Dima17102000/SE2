@@ -1,6 +1,7 @@
 package pdp1.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
 import pdp1.validation.TaskValidator;
@@ -8,13 +9,25 @@ import pdp1.validation.TaskValidator;
 public class Task {
 
     private final UUID id;
+    private final TaskValidator validator;
     private String name;
     private String description;
     private LocalDate dueDate;
     private boolean completed;
 
     public Task(String name, String description, LocalDate dueDate) {
+        this(name, description, dueDate, new TaskValidator());
+    }
+
+    public Task(
+            String name,
+            String description,
+            LocalDate dueDate,
+            TaskValidator validator) {
+
+        this.validator = Objects.requireNonNull(validator);
         this.id = UUID.randomUUID();
+
         setName(name);
         setDescription(description);
         setDueDate(dueDate);
@@ -30,7 +43,7 @@ public class Task {
     }
 
     public void setName(String name) {
-        this.name = TaskValidator.validateName(name);
+        this.name = validator.validateName(name);
     }
 
     public String getDescription() {
@@ -38,7 +51,7 @@ public class Task {
     }
 
     public void setDescription(String description) {
-        this.description = TaskValidator.validateDescription(description);
+        this.description = validator.validateDescription(description);
     }
 
     public LocalDate getDueDate() {
@@ -46,7 +59,7 @@ public class Task {
     }
 
     public void setDueDate(LocalDate dueDate) {
-        this.dueDate = TaskValidator.validateDueDate(dueDate);
+        this.dueDate = validator.validateDueDate(dueDate);
     }
 
     public boolean isCompleted() {
