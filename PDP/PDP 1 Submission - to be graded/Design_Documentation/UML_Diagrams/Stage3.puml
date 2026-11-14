@@ -1,3 +1,4 @@
+
 @startuml
 title PDP1 - Stage 3: Collaborative Task Management
 
@@ -15,12 +16,14 @@ package "pdp1.model" {
 
     class Task {
         - id: UUID
+        - validator: TaskValidator
         - name: String
         - description: String
         - dueDate: LocalDate
         - completed: boolean
         --
         + Task(name: String, description: String, dueDate: LocalDate)
+        + Task(name: String, description: String, dueDate: LocalDate, validator: TaskValidator)
         + getId(): UUID
         + getName(): String
         + setName(name: String): void
@@ -85,7 +88,10 @@ package "pdp1.service" {
 
     class TaskManager {
         - tasks: Map<UUID, Task>
+        - validator: TaskValidator
         --
+        + TaskManager()
+        + TaskManager(validator: TaskValidator)
         + addTask(task: Task, owner: ResourceOwner): void
         + getTaskById(id: UUID): Task
         + updateTask(id: UUID, name: String, description: String, dueDate: LocalDate, completed: boolean): void
@@ -126,12 +132,11 @@ package "pdp1.service" {
 
 package "pdp1.validation" {
 
-    class TaskValidator <<utility>> {
-        - TaskValidator()
-        --
-        + {static} validateName(name: String): String
-        + {static} validateDescription(description: String): String
-        + {static} validateDueDate(dueDate: LocalDate): LocalDate
+    class TaskValidator {
+        + validateName(name: String): String
+        + validateDescription(description: String): String
+        + validateDueDate(dueDate: LocalDate): LocalDate
+        + validateSearchQuery(query: String): String
     }
 }
 
@@ -162,9 +167,9 @@ TeamManager "1" o-- "0..*" Team : manages
 ProjectManager ..> TaskManager : accesses tasks
 TeamManager ..> UserManager : accesses users
 
-' Validation dependencies
-Task ..> TaskValidator : validates with
-TaskManager ..> TaskValidator : validates with
+' Validator associations
+Task --> "1" TaskValidator : validator
+TaskManager --> "1" TaskValidator : validator
 
 note right of ResourceOwner
   A resource owner is either

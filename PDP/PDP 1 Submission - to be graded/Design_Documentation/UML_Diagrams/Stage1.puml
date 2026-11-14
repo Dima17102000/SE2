@@ -10,12 +10,14 @@ package "pdp1.model" {
 
     class Task {
         - id: UUID
+        - validator: TaskValidator
         - name: String
         - description: String
         - dueDate: LocalDate
         - completed: boolean
         --
         + Task(name: String, description: String, dueDate: LocalDate)
+        + Task(name: String, description: String, dueDate: LocalDate, validator: TaskValidator)
         + getId(): UUID
         + getName(): String
         + setName(name: String): void
@@ -53,7 +55,10 @@ package "pdp1.service" {
 
     class TaskManager {
         - tasks: Map<UUID, Task>
+        - validator: TaskValidator
         --
+        + TaskManager()
+        + TaskManager(validator: TaskValidator)
         + addTask(task: Task): void
         + getTaskById(id: UUID): Task
         + updateTask(id: UUID, name: String, description: String, dueDate: LocalDate, completed: boolean): void
@@ -65,12 +70,11 @@ package "pdp1.service" {
 
 package "pdp1.validation" {
 
-    class TaskValidator <<utility>> {
-        - TaskValidator()
-        --
-        + {static} validateName(name: String): String
-        + {static} validateDescription(description: String): String
-        + {static} validateDueDate(dueDate: LocalDate): LocalDate
+    class TaskValidator {
+        + validateName(name: String): String
+        + validateDescription(description: String): String
+        + validateDueDate(dueDate: LocalDate): LocalDate
+        + validateSearchQuery(query: String): String
     }
 }
 
@@ -78,8 +82,8 @@ User "1" -- "1" TaskManager : uses
 TaskManager "1" o-- "0..*" Task : manages
 Task "0..*" -- "1..*" Category : categorized as
 
-Task ..> TaskValidator : validates with
-TaskManager ..> TaskValidator : validates with
+Task --> "1" TaskValidator : validator
+TaskManager --> "1" TaskValidator : validator
 
 note right of User
   Stage 1 supports a single user.
